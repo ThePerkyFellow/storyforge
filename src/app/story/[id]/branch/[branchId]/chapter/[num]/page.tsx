@@ -15,7 +15,7 @@ async function getChapterData(storyId: string, branchId: string, num: number) {
 
     const { data: chapter, error } = await supabase
       .from('chapters')
-      .select('*, author:profiles(*), branch:branches(*)')
+      .select('*, author:profiles(*), branch:branches!chapters_branch_id_fkey(*)')
       .eq('story_id', storyId)
       .eq('branch_id', branchId)
       .eq('chapter_number', num)
