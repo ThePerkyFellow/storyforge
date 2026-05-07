@@ -8,6 +8,7 @@ import CharacterCount from '@tiptap/extension-character-count'
 import { useState, Suspense } from 'react'
 import { GitBranch, Save, ArrowLeft, Type, Bold, Italic, List } from 'lucide-react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> | null }) {
   if (!editor) return null
@@ -47,6 +48,7 @@ function WritePageInner() {
   const [branchName, setBranchName] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [supabase] = useState(() => createClient())
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -67,13 +69,110 @@ function WritePageInner() {
   const wordCount = editor?.storage.characterCount?.words() || 0
 
   const handleSave = async () => {
-    if (!title.trim() || !editor?.getText().trim()) return
+    if (!title.trim() || !editor?.getText().trim() || !supabase) return
+    
+    // Require branch name if forking
+    if (isFork && !branchName.trim()) {
+      alert('Please provide a branch name')
+      return
+    }
+
     setSaving(true)
-    // In a real app, this would call an API route
-    // For now, show a success state
-    await new Promise((r) => setTimeout(r, 800))
-    setSaving(false)
-    setSaved(true)
+
+    try {
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      if (authError || !session) {
+        router.push('/auth?mode=signin')
+        return
+      }
+
+      if (isFork && storyId && parentChapterId) {
+        // --- 1. FORK EXISTING STORY ---
+        
+        // Create the new branch
+        const { data: branch, error: branchError } = await supabase.from('branches').insert({
+          story_id: storyId,
+          author_id: session.user.id,
+          name: branchName,
+          description: 'A forked narrative path',
+          is_canon: false,
+          fork_from_chapter_id: parentChapterId
+        }).select().single()
+
+        if (branchError) throw branchError
+
+        // Create the new chapter
+        const { error: chapterError } = await supabase.from('chapters').insert({
+          story_id: storyId,
+          branch_id: branch.id,
+          parent_chapter_id: parentChapterId,
+          author_id: session.user.id,
+          title: title,
+          content: editor.getHTML(),
+          chapter_number: parentChapterNum + 1,
+          is_canon: false,
+          word_count: wordCount,
+          is_published: true
+        })
+
+        if (chapterError) throw chapterError
+
+        setSaved(true)
+        // Navigate to the story to see the new branch
+        router.push(`/story/${storyId}`)
+        
+      } else {
+        // --- 2. CREATE BRAND NEW STORY ---
+        
+        // Create the story
+        const { data: story, error: storyError } = await supabase.from('stories').insert({
+          author_id: session.user.id,
+          title: title,
+          description: 'A new narrative universe begins...',
+          is_published: true
+        }).select().single()
+
+        if (storyError) throw storyError
+
+        // Create the canon branch
+        const { data: branch, error: branchError } = await supabase.from('branches').insert({
+          story_id: story.id,
+          author_id: session.user.id,
+          name: 'canon',
+          is_canon: true
+        }).select().single()
+
+        if (branchError) throw branchError
+
+        // Create the first chapter
+        const { error: chapterError } = await supabase.from('chapters').insert({
+          story_id: story.id,
+          branch_id: branch.id,
+          parent_chapter_id: null,
+          author_id: session.user.id,
+          title: title,
+          content: editor.getHTML(),
+          chapter_number: 1,
+          is_canon: true,
+          word_count: wordCount,
+          is_published: true
+        })
+
+        if (chapterError) throw chapterError
+
+        setSaved(true)
+        // Navigate to the newly created story
+        router.push(`/story/${story.id}`)
+      }
+      
+      router.refresh() // Tell Next.js to re-fetch server data
+      
+    } catch (err: any) {
+      console.error('Failed to save chapter:', err)
+      alert('Failed to save chapter: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

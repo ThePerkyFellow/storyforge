@@ -20,13 +20,26 @@ function AuthPageInner() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const supabase = createClient()
+  const [supabase] = useState(() => {
+    try {
+      return createClient()
+    } catch (e: any) {
+      console.error('Supabase init error:', e)
+      return null
+    }
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setSuccess('')
+
+    if (!supabase) {
+      setError('Supabase client failed to initialize. Check your environment variables (.env.local) and restart the dev server.')
+      setLoading(false)
+      return
+    }
 
     try {
       if (mode === 'signup') {
