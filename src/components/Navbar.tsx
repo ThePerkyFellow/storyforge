@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { GitBranch, BookOpen, PenSquare, Search, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 export function Navbar() {
@@ -14,6 +15,26 @@ export function Navbar() {
     { href: '/explore', label: 'Explore', icon: Search },
     { href: '/write', label: 'Write', icon: PenSquare },
   ]
+
+  const supabase = createClient()
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/10">
@@ -53,13 +74,32 @@ export function Navbar() {
 
           {/* Auth buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/auth" className="btn-secondary text-sm py-2">
-              Sign In
-            </Link>
-            <Link href="/auth?mode=signup" className="btn-primary text-sm py-2">
-              <BookOpen className="w-4 h-4" />
-              Start Writing
-            </Link>
+            {user ? (
+              <>
+                <div className="text-sm text-slate-400 mr-2 flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-slate-800 border border-white/10 overflow-hidden flex items-center justify-center">
+                    <span className="text-xs font-bold text-slate-300">{user.email?.charAt(0).toUpperCase()}</span>
+                  </div>
+                </div>
+                <button onClick={handleSignOut} className="btn-secondary text-sm py-2">
+                  Sign Out
+                </button>
+                <Link href="/write" className="btn-primary text-sm py-2">
+                  <BookOpen className="w-4 h-4" />
+                  Write
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/auth" className="btn-secondary text-sm py-2">
+                  Sign In
+                </Link>
+                <Link href="/auth?mode=signup" className="btn-primary text-sm py-2">
+                  <BookOpen className="w-4 h-4" />
+                  Start Writing
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu toggle */}
