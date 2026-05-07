@@ -48,7 +48,8 @@ insert into auth.users (
     '{"provider":"email","providers":["email"]}',
     '{"username":"luna_writes","full_name":"Luna Writes"}',
     false, '', '', '', ''
-  );
+  )
+on conflict (id) do nothing;
 
 -- ----------------------------------------------------------------
 -- Step 2: Insert demo profiles (now auth.users rows exist)
@@ -69,13 +70,15 @@ insert into public.stories (id, author_id, title, description, genre, tags, is_p
    'When Earth receives a signal from a dead star, astrophysicist Dr. Kira Nolan discovers it contains a warning — one that was sent 4,000 years ago. But who sent it, and are they still out there?',
    'Science Fiction',
    array['space', 'mystery', 'first-contact', 'thriller'],
-   true, 1842, 3);
+   true, 1842, 3)
+on conflict (id) do nothing;
 
 -- Branches for Story 1
 insert into public.branches (id, story_id, author_id, name, description, is_canon, total_reads) values
   ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'canon', 'The original story by Aria Voss', true, 1200),
   ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'dex-they-survived', 'What if the senders are still alive and watching?', false, 420),
-  ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', 'luna-dark-ending', 'The warning was not meant as a help — it was a threat.', false, 222);
+  ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', 'luna-dark-ending', 'The warning was not meant as a help — it was a threat.', false, 222)
+on conflict (id) do nothing;
 
 -- Canon chapters for Story 1
 insert into public.chapters (id, story_id, branch_id, parent_chapter_id, author_id, title, content, chapter_number, is_canon, read_count, word_count) values
@@ -136,7 +139,8 @@ The room fell silent. Every face turned to the President.
 Kira looked out the window at the Washington skyline. Somewhere above the monuments and the smog, 1,400 light-years of empty space separated them from whoever had sent those seven words.
 
 She wondered if they were looking back.',
-   3, true, 612, 201);
+   3, true, 612, 201)
+on conflict (id) do nothing;
 
 -- Dex's fork (diverges from chapter 3)
 insert into public.chapters (id, story_id, branch_id, parent_chapter_id, author_id, title, content, chapter_number, is_canon, read_count, word_count) values
@@ -161,7 +165,8 @@ Kira''s phone buzzed. Unknown number.
 She looked at the call log. The number traced to a government exchange.
 
 A department that, according to every public record, did not exist.',
-   3, false, 420, 218);
+   3, false, 420, 218)
+on conflict (id) do nothing;
 
 -- Luna's fork (diverges from chapter 3, darker)
 insert into public.chapters (id, story_id, branch_id, parent_chapter_id, author_id, title, content, chapter_number, is_canon, read_count, word_count) values
@@ -186,7 +191,8 @@ The message began: We were here before you. We made you. We are sorry for what y
 Outside the observatory window, the stars looked exactly the same as they always had.
 
 Kira turned off all the lights and sat in the dark.',
-   3, false, 222, 198);
+   3, false, 222, 198)
+on conflict (id) do nothing;
 
 -- Update branch fork_from_chapter_id references
 update public.branches set fork_from_chapter_id = '30000000-0000-0000-0000-000000000002' where id = '20000000-0000-0000-0000-000000000002';
@@ -202,11 +208,13 @@ insert into public.stories (id, author_id, title, description, genre, tags, is_p
    'In a kingdom where memories can be harvested and sold, orphan thief Sable steals the wrong memory — and suddenly knows the secret that the crown has been burying for a hundred years.',
    'Fantasy',
    array['magic', 'heist', 'royalty', 'mystery'],
-   true, 2341, 2);
+   true, 2341, 2)
+on conflict (id) do nothing;
 
 insert into public.branches (id, story_id, author_id, name, description, is_canon, total_reads) values
   ('20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', 'canon', 'The original story by Dex Morlan', true, 1800),
-  ('20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'aria-sable-revenge', 'What if Sable uses the secret as leverage instead of exposing it?', false, 541);
+  ('20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'aria-sable-revenge', 'What if Sable uses the secret as leverage instead of exposing it?', false, 541)
+on conflict (id) do nothing;
 
 insert into public.chapters (id, story_id, branch_id, parent_chapter_id, author_id, title, content, chapter_number, is_canon, read_count, word_count) values
   ('30000000-0000-0000-0000-000000000006',
@@ -253,7 +261,8 @@ Sable sat in her attic room for a long time, turning the black vial over in her 
 Silver hair. Eyes like fractured mirrors.
 
 She''d always assumed she was just another orphan.',
-   2, true, 980, 211);
+   2, true, 980, 211)
+on conflict (id) do nothing;
 
 insert into public.chapters (id, story_id, branch_id, parent_chapter_id, author_id, title, content, chapter_number, is_canon, read_count, word_count) values
   ('30000000-0000-0000-0000-000000000008',
@@ -281,6 +290,7 @@ He didn''t touch it. He didn''t even look at it. He looked at her — really loo
 She smiled. It was not a kind smile. She had not had a kind life.
 
 "No one. Yet."',
-   3, false, 541, 192);
+   3, false, 541, 192)
+on conflict (id) do nothing;
 
 update public.branches set fork_from_chapter_id = '30000000-0000-0000-0000-000000000007' where id = '20000000-0000-0000-0000-000000000005';

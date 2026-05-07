@@ -84,49 +84,49 @@ export default async function ChapterPage({ params }: PageProps) {
     .filter(Boolean)
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-16 bg-paper-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main reading column */}
           <div className="lg:col-span-3">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-8 flex-wrap">
-              <Link href="/explore" className="hover:text-slate-300 transition-colors">Explore</Link>
+            <div className="flex items-center gap-2 text-sm text-ink-500 mb-8 flex-wrap font-medium">
+              <Link href="/explore" className="hover:text-ink-900 transition-colors">Explore</Link>
               <span>/</span>
-              <Link href={`/story/${id}`} className="hover:text-slate-300 transition-colors">
+              <Link href={`/story/${id}`} className="hover:text-ink-900 transition-colors">
                 {story?.title}
               </Link>
               <span>/</span>
               {!branch?.is_canon && (
                 <>
-                  <span className="text-violet-400 font-mono text-xs">{branch?.name}</span>
+                  <span className="text-violet-600 font-mono text-xs">{branch?.name}</span>
                   <span>/</span>
                 </>
               )}
-              <span className="text-slate-300">Ch.{chapterNum}</span>
+              <span className="text-ink-900 font-bold">Ch.{chapterNum}</span>
             </div>
 
             {/* Chapter header */}
             <div className="mb-10">
               {!branch?.is_canon && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/25 text-violet-300 text-xs font-medium mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold mb-4">
                   <GitBranch className="w-3 h-3" />
                   Fork: {branch?.name}
                 </div>
               )}
-              <div className="text-slate-500 text-sm mb-2 font-mono">
+              <div className="text-ink-500 text-sm mb-2 font-mono font-bold uppercase tracking-wider">
                 Chapter {chapterNum}
               </div>
-              <h1 className="font-story text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight mb-6">
+              <h1 className="font-story text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-900 leading-tight mb-6">
                 {chapter.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 pb-6 border-b border-white/8">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-ink-500 pb-6 border-b border-black/5 font-medium">
                 <span className="flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5" />
                   <Link
                     href={`/profile/${author?.username}`}
-                    className="text-amber-400 hover:text-amber-300 transition-colors"
+                    className="text-amber-600 hover:text-amber-700 transition-colors"
                   >
                     @{author?.username}
                   </Link>
@@ -151,8 +151,8 @@ export default async function ChapterPage({ params }: PageProps) {
             </article>
 
             {/* Reactions */}
-            <div className="flex items-center gap-3 mb-10 pb-8 border-b border-white/8">
-              <span className="text-slate-500 text-sm">React:</span>
+            <div className="flex items-center gap-3 mb-10 pb-8 border-b border-black/5">
+              <span className="text-ink-500 text-sm font-bold">React:</span>
               {[
                 { emoji: '❤️', label: 'heart' },
                 { emoji: '🔥', label: 'fire' },
@@ -172,17 +172,17 @@ export default async function ChapterPage({ params }: PageProps) {
             </div>
 
             {/* Fork CTA */}
-            <div className="glass rounded-2xl p-6 border border-violet-500/20 bg-violet-500/5 mb-8">
+            <div className="bg-violet-50 rounded-2xl p-6 border border-violet-100 mb-8 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <GitBranch className="w-4 h-4 text-violet-400" />
-                <h3 className="text-white font-semibold">Fork from this chapter</h3>
+                <GitBranch className="w-4 h-4 text-violet-500" />
+                <h3 className="text-violet-900 font-bold">Fork from this chapter</h3>
               </div>
-              <p className="text-slate-400 text-sm mb-4">
+              <p className="text-violet-700/80 text-sm mb-4 font-medium">
                 You disagree with what happens next? Fork the story from here and write your own version.
               </p>
               <Link
                 href={`/write?fork=true&storyId=${id}&parentChapterId=${chapter.id}&branchId=${branchId}&chapterNum=${chapterNum}`}
-                className="btn-fork"
+                className="btn-fork shadow-sm bg-white"
                 id="fork-from-chapter-btn"
               >
                 <GitBranch className="w-4 h-4" />
@@ -195,13 +195,13 @@ export default async function ChapterPage({ params }: PageProps) {
               {prevChapter ? (
                 <Link
                   href={`/story/${id}/branch/${branchId}/chapter/${prevChapter.chapter_number}`}
-                  className="flex items-center gap-2 glass px-4 py-3 rounded-xl border border-white/10 text-slate-300 hover:text-white hover:border-white/25 transition-all group flex-1"
+                  className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-black/5 text-ink-900 hover:border-black/15 transition-all group flex-1 shadow-sm"
                   id="prev-chapter-btn"
                 >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform flex-shrink-0" />
+                  <ArrowLeft className="w-4 h-4 text-ink-400 group-hover:-translate-x-1 transition-transform flex-shrink-0" />
                   <div className="min-w-0">
-                    <div className="text-xs text-slate-500">Previous</div>
-                    <div className="text-sm font-medium truncate">{prevChapter.title}</div>
+                    <div className="text-xs text-ink-500 font-bold uppercase tracking-wider">Previous</div>
+                    <div className="text-sm font-bold truncate">{prevChapter.title}</div>
                   </div>
                 </Link>
               ) : (
@@ -211,17 +211,17 @@ export default async function ChapterPage({ params }: PageProps) {
               {nextChapter ? (
                 <Link
                   href={`/story/${id}/branch/${branchId}/chapter/${nextChapter.chapter_number}`}
-                  className="flex items-center gap-2 glass px-4 py-3 rounded-xl border border-white/10 text-slate-300 hover:text-white hover:border-white/25 transition-all group flex-1 justify-end text-right"
+                  className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-black/5 text-ink-900 hover:border-black/15 transition-all group flex-1 justify-end text-right shadow-sm"
                   id="next-chapter-btn"
                 >
                   <div className="min-w-0">
-                    <div className="text-xs text-slate-500">Next</div>
-                    <div className="text-sm font-medium truncate">{nextChapter.title}</div>
+                    <div className="text-xs text-ink-500 font-bold uppercase tracking-wider">Next</div>
+                    <div className="text-sm font-bold truncate">{nextChapter.title}</div>
                   </div>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+                  <ArrowRight className="w-4 h-4 text-ink-400 group-hover:translate-x-1 transition-transform flex-shrink-0" />
                 </Link>
               ) : (
-                <div className="glass px-4 py-3 rounded-xl border border-dashed border-white/10 text-slate-500 text-sm flex-1 text-center">
+                <div className="bg-paper-100 px-4 py-3 rounded-xl border border-dashed border-black/10 text-ink-500 text-sm flex-1 text-center font-medium">
                   End of this branch — fork to continue?
                 </div>
               )}
@@ -231,22 +231,22 @@ export default async function ChapterPage({ params }: PageProps) {
           {/* Sidebar */}
           <div className="hidden lg:block space-y-5">
             {/* Table of contents */}
-            <div className="glass rounded-2xl p-5 border border-white/10 sticky top-24">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            <div className="bg-white rounded-2xl p-5 border border-black/5 sticky top-24 shadow-sm">
+              <h3 className="text-xs font-bold text-ink-900 uppercase tracking-wider mb-4">
                 {branch?.is_canon ? 'Chapters' : `${branch?.name} chapters`}
               </h3>
-              <div className="space-y-1 max-h-80 overflow-y-auto">
+              <div className="space-y-1 max-h-80 overflow-y-auto pr-2">
                 {branchChapters.map((ch: any) => (
                   <Link
                     key={ch.id}
                     href={`/story/${id}/branch/${branchId}/chapter/${ch.chapter_number}`}
-                    className={`block px-3 py-2 rounded-lg text-xs transition-colors ${
+                    className={`block px-3 py-2 rounded-lg text-xs transition-colors font-medium ${
                       ch.chapter_number === chapterNum
-                        ? 'bg-amber-500/15 text-amber-300 font-medium'
-                        : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                        ? 'bg-amber-50 text-amber-800 font-bold'
+                        : 'text-ink-600 hover:text-ink-900 hover:bg-black/5'
                     }`}
                   >
-                    <span className="text-slate-600 font-mono mr-2">{String(ch.chapter_number).padStart(2, '0')}</span>
+                    <span className="text-ink-400 font-mono mr-2">{String(ch.chapter_number).padStart(2, '0')}</span>
                     {ch.title}
                   </Link>
                 ))}

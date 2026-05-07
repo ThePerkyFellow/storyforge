@@ -9,12 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          950: "#060b18",
-          900: "#0d1526",
-          800: "#141f38",
-          700: "#1c2d50",
-          600: "#243668",
+        paper: {
+          50: "#ffffff",
+          100: "#faf9f6", // Main background
+          200: "#f0eee6",
+          300: "#e6e2d6",
+          400: "#dcd6c6",
+        },
+        ink: {
+          900: "#0f172a", // Primary text
+          800: "#1e293b",
+          700: "#334155",
+          600: "#475569", // Secondary text
+          500: "#64748b",
         },
         amber: {
           400: "#fbbf24",

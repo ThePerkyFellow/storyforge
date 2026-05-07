@@ -58,26 +58,26 @@ export default async function ExplorePage({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-10">
-          <div className="flex items-center gap-2 text-amber-400 text-sm font-medium mb-3">
+          <div className="flex items-center gap-2 text-amber-600 text-sm font-bold mb-3">
             <Sparkles className="w-4 h-4" />
             EXPLORE
           </div>
-          <h1 className="font-story text-4xl sm:text-5xl font-bold text-white mb-3">
+          <h1 className="font-story text-4xl sm:text-5xl font-bold text-ink-900 mb-3">
             Stories worth forking
           </h1>
-          <p className="text-slate-400 text-lg">
+          <p className="text-ink-600 text-lg">
             {stories.length} {activeGenre !== 'All' ? activeGenre : ''} stories ready for your imagination
           </p>
         </div>
 
-        {/* Search bar (UI only for now) */}
+        {/* Search bar */}
         <div className="relative mb-8 max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
           <input
             id="story-search"
             type="text"
             placeholder="Search stories, authors, or tags..."
-            className="w-full pl-11 pr-4 py-3 glass rounded-xl border border-white/10 text-slate-300 placeholder-slate-500 focus:outline-none focus:border-amber-500/50 text-sm transition-colors"
+            className="w-full pl-11 pr-4 py-3 bg-white rounded-xl border border-black/10 text-ink-900 placeholder-ink-400 shadow-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm transition-all"
           />
         </div>
 
@@ -90,8 +90,8 @@ export default async function ExplorePage({
               id={`genre-filter-${genre.toLowerCase().replace(/\s+/g, '-')}`}
               className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
                 activeGenre === genre
-                  ? 'bg-amber-500 border-amber-500 text-navy-900 font-semibold'
-                  : 'glass border-white/10 text-slate-400 hover:text-white hover:border-white/25'
+                  ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
+                  : 'bg-white border-black/10 text-ink-600 hover:text-ink-900 hover:border-black/20 shadow-sm'
               }`}
             >
               {genre}
@@ -100,12 +100,12 @@ export default async function ExplorePage({
         </div>
 
         {/* Sort tabs */}
-        <div className="flex items-center gap-4 mb-8 border-b border-white/8 pb-4">
-          <button id="sort-trending" className="flex items-center gap-1.5 text-amber-400 text-sm font-medium border-b-2 border-amber-400 pb-4 -mb-4">
+        <div className="flex items-center gap-4 mb-8 border-b border-black/10 pb-4">
+          <button id="sort-trending" className="flex items-center gap-1.5 text-amber-600 text-sm font-bold border-b-2 border-amber-500 pb-4 -mb-4">
             <TrendingUp className="w-4 h-4" />
             Trending
           </button>
-          <button id="sort-newest" className="flex items-center gap-1.5 text-slate-500 text-sm hover:text-slate-300 transition-colors pb-4 -mb-4">
+          <button id="sort-newest" className="flex items-center gap-1.5 text-ink-500 text-sm font-medium hover:text-ink-900 transition-colors pb-4 -mb-4">
             <Clock className="w-4 h-4" />
             Newest
           </button>
@@ -119,12 +119,12 @@ export default async function ExplorePage({
             ))}
           </div>
         ) : (
-          <div className="text-center py-24">
-            <div className="w-16 h-16 rounded-2xl glass flex items-center justify-center mx-auto mb-4">
-              <Search className="w-7 h-7 text-slate-500" />
+          <div className="text-center py-24 bg-white/50 rounded-3xl border border-black/5">
+            <div className="w-16 h-16 rounded-2xl bg-white border border-black/5 shadow-sm flex items-center justify-center mx-auto mb-4">
+              <Search className="w-7 h-7 text-ink-400" />
             </div>
-            <h3 className="font-story text-xl text-slate-400 mb-2">No stories yet</h3>
-            <p className="text-slate-600 text-sm">Be the first to write one in this genre.</p>
+            <h3 className="font-story text-xl text-ink-900 mb-2 font-bold">No stories yet</h3>
+            <p className="text-ink-500 text-sm">Be the first to write one in this genre.</p>
           </div>
         )}
       </div>

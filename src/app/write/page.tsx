@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> | null }) {
   if (!editor) return null
   return (
-    <div className="flex items-center gap-1 p-2 border-b border-white/10">
+    <div className="flex items-center gap-1 p-2 border-b border-black/5 bg-paper-100">
       {[
         { icon: Bold, action: () => editor.chain().focus().toggleBold().run(), label: 'Bold', active: editor.isActive('bold') },
         { icon: Italic, action: () => editor.chain().focus().toggleItalic().run(), label: 'Italic', active: editor.isActive('italic') },
@@ -24,7 +24,7 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> | null
           onMouseDown={(e) => { e.preventDefault(); action() }}
           title={label}
           className={`p-2 rounded-lg transition-colors ${
-            active ? 'bg-amber-500/20 text-amber-400' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+            active ? 'bg-amber-100 text-amber-700' : 'text-ink-500 hover:text-ink-900 hover:bg-black/5'
           }`}
         >
           <Icon className="w-4 h-4" />
@@ -62,7 +62,7 @@ function WritePageInner() {
       CharacterCount,
     ],
     editorProps: {
-      attributes: { class: 'ProseMirror min-h-[400px] focus:outline-none' },
+      attributes: { class: 'ProseMirror min-h-[400px] focus:outline-none text-ink-800' },
     },
   })
 
@@ -176,7 +176,7 @@ function WritePageInner() {
   }
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-16 bg-paper-100">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -184,21 +184,21 @@ function WritePageInner() {
             {storyId ? (
               <Link
                 href={`/story/${storyId}`}
-                className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 text-sm transition-colors"
+                className="flex items-center gap-1.5 text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to story
               </Link>
             ) : (
-              <Link href="/explore" className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 text-sm transition-colors">
+              <Link href="/explore" className="flex items-center gap-1.5 text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">
                 <ArrowLeft className="w-4 h-4" />
                 Explore
               </Link>
             )}
             {isFork && (
               <>
-                <span className="text-slate-700">/</span>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/15 border border-violet-500/25 text-violet-300 text-xs">
+                <span className="text-ink-300">/</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold">
                   <GitBranch className="w-3 h-3" />
                   Forking from Chapter {parentChapterNum}
                 </div>
@@ -210,9 +210,9 @@ function WritePageInner() {
             id="save-chapter-btn"
             onClick={handleSave}
             disabled={saving || saved || !title.trim()}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all ${
               saved
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 : 'btn-primary'
             }`}
           >
@@ -223,14 +223,14 @@ function WritePageInner() {
 
         {/* Fork context banner */}
         {isFork && (
-          <div className="glass rounded-xl p-4 border border-violet-500/20 bg-violet-500/5 mb-8">
+          <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 mb-8 shadow-sm">
             <div className="flex items-start gap-3">
-              <GitBranch className="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
+              <GitBranch className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-violet-300 text-sm font-medium mb-1">
+                <div className="text-violet-900 text-sm font-bold mb-1">
                   You're creating a fork from Chapter {parentChapterNum}
                 </div>
-                <p className="text-slate-400 text-xs">
+                <p className="text-violet-700/80 text-xs">
                   Your fork will branch from this point. The original story continues unchanged.
                   Give your branch a unique name below.
                 </p>
@@ -249,16 +249,16 @@ function WritePageInner() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Chapter title…"
-              className="w-full font-story text-3xl font-bold text-white bg-transparent border-none outline-none placeholder-slate-700 mb-6"
+              className="w-full font-story text-3xl font-bold text-ink-900 bg-transparent border-none outline-none placeholder-ink-300 mb-6"
             />
 
             {/* Rich text editor */}
-            <div className="glass rounded-2xl border border-white/10 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-black/5 overflow-hidden shadow-sm">
               <EditorToolbar editor={editor} />
               <div className="p-6">
                 <EditorContent editor={editor} />
               </div>
-              <div className="flex items-center justify-between px-6 py-3 border-t border-white/8 text-slate-600 text-xs">
+              <div className="flex items-center justify-between px-6 py-3 border-t border-black/5 text-ink-500 text-xs font-medium bg-paper-50">
                 <span className="flex items-center gap-1.5">
                   <Type className="w-3 h-3" />
                   {wordCount} words
@@ -272,15 +272,15 @@ function WritePageInner() {
           <div className="space-y-5">
             {/* Branch settings */}
             {isFork && (
-              <div className="glass rounded-2xl p-5 border border-white/10">
-                <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-                  <GitBranch className="w-4 h-4 text-violet-400" />
+              <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
+                <h3 className="text-sm font-bold text-ink-900 mb-4 flex items-center gap-2">
+                  <GitBranch className="w-4 h-4 text-violet-500" />
                   Branch Settings
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="branch-name-input" className="block text-xs text-slate-500 mb-2">
-                      Branch name <span className="text-red-400">*</span>
+                    <label htmlFor="branch-name-input" className="block text-xs font-bold text-ink-600 mb-2 uppercase tracking-wide">
+                      Branch name <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="branch-name-input"
@@ -288,19 +288,19 @@ function WritePageInner() {
                       value={branchName}
                       onChange={(e) => setBranchName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                       placeholder="my-alternate-ending"
-                      className="w-full px-3 py-2 glass rounded-lg border border-white/10 text-slate-300 text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500/50 font-mono transition-colors"
+                      className="w-full px-3 py-2 bg-white rounded-lg border border-black/10 text-ink-900 text-sm placeholder-ink-300 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 font-mono transition-colors shadow-inner"
                     />
-                    <p className="text-slate-600 text-xs mt-1.5">Lowercase, hyphens only. Like a git branch name.</p>
+                    <p className="text-ink-500 text-xs mt-1.5 font-medium">Lowercase, hyphens only. Like a git branch name.</p>
                   </div>
                   <div>
-                    <label htmlFor="branch-desc-input" className="block text-xs text-slate-500 mb-2">
+                    <label htmlFor="branch-desc-input" className="block text-xs font-bold text-ink-600 mb-2 uppercase tracking-wide">
                       Branch description
                     </label>
                     <textarea
                       id="branch-desc-input"
                       rows={3}
                       placeholder="What makes your version different?"
-                      className="w-full px-3 py-2 glass rounded-lg border border-white/10 text-slate-300 text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500/50 resize-none transition-colors"
+                      className="w-full px-3 py-2 bg-white rounded-lg border border-black/10 text-ink-900 text-sm placeholder-ink-300 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none transition-colors shadow-inner"
                     />
                   </div>
                 </div>
@@ -308,26 +308,28 @@ function WritePageInner() {
             )}
 
             {/* Writing tips */}
-            <div className="glass rounded-2xl p-5 border border-white/10">
-              <h3 className="text-sm font-semibold text-slate-400 mb-3">Writing tips</h3>
-              <ul className="space-y-2 text-xs text-slate-500">
+            <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
+              <h3 className="text-sm font-bold text-ink-900 mb-3">Writing tips</h3>
+              <ul className="space-y-2 text-xs text-ink-600 font-medium">
                 <li>· Aim for 800–2000 words per chapter</li>
                 <li>· Start in the middle of the action</li>
                 <li>· End with a hook or decision point</li>
-                {isFork && <li className="text-violet-400">· Reference the fork point naturally in your prose</li>}
+                {isFork && <li className="text-violet-600">· Reference the fork point naturally in your prose</li>}
               </ul>
             </div>
 
             {/* Sign in prompt */}
-            <div className="glass rounded-2xl p-5 border border-amber-500/20 bg-amber-500/5">
-              <p className="text-amber-300 text-sm font-medium mb-2">Sign in to publish</p>
-              <p className="text-slate-400 text-xs mb-4">
-                Your draft won't be lost. Sign in to save and publish your chapter.
-              </p>
-              <Link href="/auth" className="btn-primary text-sm w-full justify-center">
-                Sign in to publish
-              </Link>
-            </div>
+            {!supabase && (
+              <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200 shadow-sm">
+                <p className="text-amber-800 text-sm font-bold mb-2">Sign in to publish</p>
+                <p className="text-amber-700/80 text-xs mb-4">
+                  Your draft won't be lost. Sign in to save and publish your chapter.
+                </p>
+                <Link href="/auth" className="btn-primary text-sm w-full justify-center shadow-md">
+                  Sign in to publish
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -337,7 +339,7 @@ function WritePageInner() {
 
 export default function WritePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen pt-16 flex items-center justify-center text-slate-500">Loading editor…</div>}>
+    <Suspense fallback={<div className="min-h-screen pt-16 flex items-center justify-center text-ink-500 bg-paper-100">Loading editor…</div>}>
       <WritePageInner />
     </Suspense>
   )
