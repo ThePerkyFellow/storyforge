@@ -283,7 +283,7 @@ export default async function ChapterPage({ params }: PageProps) {
                 )}
 
                 {/* 4. Write Alternative Action */}
-                {story.allow_alternatives && (
+                {story?.allow_alternatives && (
                   <div className="mt-6 flex justify-center">
                     <Link
                       href={`/write?fork=true&storyId=${id}&parentChapterId=${chapter.id}&branchId=${branchId}&chapterNum=${chapterNum}`}

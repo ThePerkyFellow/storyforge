@@ -203,7 +203,7 @@ export default async function StoryPage({ params }: PageProps) {
                           <BookOpen className="w-3.5 h-3.5" />
                           Read
                         </Link>
-                        {story.allow_alternatives && (
+                        {story?.allow_alternatives && (
                           <Link
                             href={`/story/${id}/branch/${chapter.branch_id}/chapter/${chapter.chapter_number}/write-alternative`}
                             id={`chapter-write-${idx + 1}`}
@@ -322,7 +322,7 @@ export default async function StoryPage({ params }: PageProps) {
             )}
 
             {/* Alternative CTA */}
-            {story.allow_alternatives && (
+            {story?.allow_alternatives && (
               <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <GitBranch className="w-4 h-4 text-violet-500" />
