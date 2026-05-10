@@ -45,7 +45,7 @@ function WritePageInner() {
   const parentChapterNum = parseInt(searchParams.get('chapterNum') || '0')
 
   const [title, setTitle] = useState('')
-  const [branchName, setBranchName] = useState('')
+  const [pathName, setPathName] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [supabase] = useState(() => createClient())
@@ -56,7 +56,7 @@ function WritePageInner() {
       StarterKit,
       Placeholder.configure({
         placeholder: isFork
-          ? 'This is where the story diverges. Write your version of what happens next…'
+          ? 'This is where the timeline diverges. Write your version of what happens next…'
           : 'Begin your story here. The first sentence is the hardest…',
       }),
       CharacterCount,
@@ -71,9 +71,9 @@ function WritePageInner() {
   const handleSave = async () => {
     if (!title.trim() || !editor?.getText().trim() || !supabase) return
     
-    // Require branch name if forking
-    if (isFork && !branchName.trim()) {
-      alert('Please provide a branch name')
+    // Require path name if writing alternative
+    if (isFork && !pathName.trim()) {
+      alert('Please provide a path name')
       return
     }
 
@@ -89,12 +89,12 @@ function WritePageInner() {
       if (isFork && storyId && parentChapterId) {
         // --- 1. FORK EXISTING STORY ---
         
-        // Create the new branch
+        // Create the new branch (alternative path)
         const { data: branch, error: branchError } = await supabase.from('branches').insert({
           story_id: storyId,
           author_id: session.user.id,
-          name: branchName,
-          description: 'A forked narrative path',
+          name: pathName,
+          description: 'An alternative narrative path',
           is_canon: false,
           fork_from_chapter_id: parentChapterId
         }).select().single()
@@ -199,8 +199,8 @@ function WritePageInner() {
               <>
                 <span className="text-ink-300">/</span>
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold">
-                  <GitBranch className="w-3 h-3" />
-                  Forking from Chapter {parentChapterNum}
+                  <Split className="w-3 h-3" />
+                  Alternative to Chapter {parentChapterNum}
                 </div>
               </>
             )}
@@ -221,18 +221,18 @@ function WritePageInner() {
           </button>
         </div>
 
-        {/* Fork context banner */}
+        {/* Alternative context banner */}
         {isFork && (
           <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 mb-8 shadow-sm">
             <div className="flex items-start gap-3">
-              <GitBranch className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
+              <Split className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
               <div>
                 <div className="text-violet-900 text-sm font-bold mb-1">
-                  You're creating a fork from Chapter {parentChapterNum}
+                  You're writing an alternative path for Chapter {parentChapterNum}
                 </div>
                 <p className="text-violet-700/80 text-xs">
-                  Your fork will branch from this point. The original story continues unchanged.
-                  Give your branch a unique name below.
+                  Your path will diverge from this point. The original story continues unchanged.
+                  Give your new timeline a unique name below.
                 </p>
               </div>
             </div>
@@ -270,27 +270,27 @@ function WritePageInner() {
 
           {/* Settings sidebar */}
           <div className="space-y-5">
-            {/* Branch settings */}
+            {/* Path settings */}
             {isFork && (
               <div className="bg-white rounded-2xl p-5 border border-black/5 shadow-sm">
                 <h3 className="text-sm font-bold text-ink-900 mb-4 flex items-center gap-2">
-                  <GitBranch className="w-4 h-4 text-violet-500" />
-                  Branch Settings
+                  <Split className="w-4 h-4 text-violet-500" />
+                  Path Settings
                 </h3>
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="branch-name-input" className="block text-xs font-bold text-ink-600 mb-2 uppercase tracking-wide">
-                      Branch name <span className="text-red-500">*</span>
+                      Path name <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="branch-name-input"
                       type="text"
-                      value={branchName}
-                      onChange={(e) => setBranchName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                      value={pathName}
+                      onChange={(e) => setPathName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                       placeholder="my-alternate-ending"
                       className="w-full px-3 py-2 bg-white rounded-lg border border-black/10 text-ink-900 text-sm placeholder-ink-300 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 font-mono transition-colors shadow-inner"
                     />
-                    <p className="text-ink-500 text-xs mt-1.5 font-medium">Lowercase, hyphens only. Like a git branch name.</p>
+                    <p className="text-ink-500 text-xs mt-1.5 font-medium">Lowercase, hyphens only. Like a URL slug.</p>
                   </div>
                   <div>
                     <label htmlFor="branch-desc-input" className="block text-xs font-bold text-ink-600 mb-2 uppercase tracking-wide">
@@ -314,7 +314,7 @@ function WritePageInner() {
                 <li>· Aim for 800–2000 words per chapter</li>
                 <li>· Start in the middle of the action</li>
                 <li>· End with a hook or decision point</li>
-                {isFork && <li className="text-violet-600">· Reference the fork point naturally in your prose</li>}
+                {isFork && <li className="text-violet-600">· Reference the diverging point naturally in your prose</li>}
               </ul>
             </div>
 

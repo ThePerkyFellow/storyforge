@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { GitBranch, BookOpen, Eye, User, ArrowRight, Clock } from 'lucide-react'
+import { BookOpen, Eye, User, ArrowRight, Clock, GitBranch, Settings } from 'lucide-react'
 import { formatReadCount, formatDate, estimateReadTime, GENRE_COLORS, cn } from '@/lib/utils'
 import type { Story, Branch, Chapter } from '@/lib/types'
 import type { Metadata } from 'next'
@@ -55,7 +55,11 @@ export default async function StoryPage({ params }: PageProps) {
   const data = await getStoryData(id)
   if (!data) notFound()
 
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
   const { story, branches, chapters } = data
+  const isAuthor = session?.user?.id === story.author_id
 
   const canonBranch = branches.find((b: Branch) => b.is_canon)
   const forkBranches = branches.filter((b: Branch) => !b.is_canon)
@@ -95,7 +99,7 @@ export default async function StoryPage({ params }: PageProps) {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <GitBranch className="w-4 h-4 text-violet-500" />
-                  {story.total_forks} forks
+                  {story.total_forks} alternatives
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" />
@@ -128,12 +132,32 @@ export default async function StoryPage({ params }: PageProps) {
               )}
               <Link
                 href={`/story/${id}/tree`}
-                className="btn-fork shadow-sm"
+                className="btn-secondary shadow-sm"
                 id="view-tree-btn"
               >
                 <GitBranch className="w-4 h-4" />
-                View Branch Tree
+                View Story Tree
               </Link>
+              {isAuthor && (
+                <>
+                  <Link
+                    href={`/story/${id}/suggestions`}
+                    className="btn-secondary shadow-sm ml-auto text-ink-600 bg-white border-black/10 hover:border-violet-300 hover:text-violet-700"
+                    id="story-suggestions-btn"
+                  >
+                    <GitBranch className="w-4 h-4" />
+                    Review Suggestions
+                  </Link>
+                  <Link
+                    href={`/story/${id}/settings`}
+                    className="btn-secondary shadow-sm text-ink-600 bg-white border-black/10 hover:border-black/20"
+                    id="story-settings-btn"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Canon chapters list */}
@@ -151,18 +175,16 @@ export default async function StoryPage({ params }: PageProps) {
 
                 <div className="space-y-3">
                   {canonChapters.map((chapter: Chapter, idx: number) => (
-                    <Link
+                    <div
                       key={chapter.id}
-                      href={`/story/${id}/branch/${chapter.branch_id}/chapter/${chapter.chapter_number}`}
-                      id={`chapter-link-${idx + 1}`}
-                      className="flex items-center justify-between bg-white rounded-xl p-4 border border-black/5 card-hover group shadow-sm"
+                      className="bg-white rounded-xl p-4 border border-black/5 shadow-sm flex flex-col gap-3"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-ink-400 font-mono text-sm w-6 text-right flex-shrink-0 font-bold">
                           {String(idx + 1).padStart(2, '0')}
                         </span>
-                        <div>
-                          <div className="text-ink-900 text-sm font-bold group-hover:text-amber-600 transition-colors">
+                        <div className="flex-1">
+                          <div className="text-ink-900 text-sm font-bold">
                             {chapter.title}
                           </div>
                           <div className="text-ink-500 text-xs mt-0.5 font-medium">
@@ -170,23 +192,44 @@ export default async function StoryPage({ params }: PageProps) {
                           </div>
                         </div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-ink-400 group-hover:text-amber-500 transition-colors flex-shrink-0" />
-                    </Link>
+                      
+                      {/* Chapter Actions */}
+                      <div className="flex items-center gap-2 pl-10">
+                        <Link
+                          href={`/story/${id}/branch/${chapter.branch_id}/chapter/${chapter.chapter_number}`}
+                          id={`chapter-read-${idx + 1}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-bold transition-colors"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          Read
+                        </Link>
+                        {story.allow_alternatives && (
+                          <Link
+                            href={`/story/${id}/branch/${chapter.branch_id}/chapter/${chapter.chapter_number}/write-alternative`}
+                            id={`chapter-write-${idx + 1}`}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg text-xs font-bold transition-colors"
+                          >
+                            <GitBranch className="w-3.5 h-3.5" />
+                            Write Alternative
+                          </Link>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Fork branches */}
+            {/* Alternative paths */}
             {forkBranches.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-5">
                   <div className="w-2 h-2 rounded-full bg-violet-500" />
                   <h2 className="font-story text-xl font-bold text-ink-900">
-                    Community Forks
+                    Community Alternatives
                   </h2>
                   <span className="px-2 py-0.5 rounded text-xs bg-violet-50 text-violet-700 border border-violet-200 font-semibold">
-                    {forkBranches.length} alternate ending{forkBranches.length !== 1 ? 's' : ''}
+                    {forkBranches.length} alternate path{forkBranches.length !== 1 ? 's' : ''}
                   </span>
                 </div>
 
@@ -194,8 +237,8 @@ export default async function StoryPage({ params }: PageProps) {
                   {forkBranches.map((branch: Branch) => {
                     const branchChapters = chapters.filter((c: Chapter) => c.branch_id === branch.id)
                     return (
-                      <div key={branch.id} className="bg-white rounded-xl p-5 border border-violet-100 card-hover shadow-sm">
-                        <div className="flex items-start justify-between gap-4 mb-3">
+                      <div key={branch.id} className="bg-white rounded-xl p-5 border border-violet-100 shadow-sm flex flex-col gap-3">
+                        <div className="flex items-start justify-between gap-4">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <GitBranch className="w-3.5 h-3.5 text-violet-500" />
@@ -216,14 +259,17 @@ export default async function StoryPage({ params }: PageProps) {
                           <span className="text-ink-500 text-xs font-medium">
                             by @{branch.author?.username} · {branchChapters.length} chapter{branchChapters.length !== 1 ? 's' : ''}
                           </span>
-                          {branchChapters[0] && (
-                            <Link
-                              href={`/story/${id}/branch/${branch.id}/chapter/${branchChapters[0].chapter_number}`}
-                              className="text-violet-600 text-xs font-bold hover:text-violet-700 transition-colors flex items-center gap-1"
-                            >
-                              Read fork <ArrowRight className="w-3 h-3" />
-                            </Link>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {branchChapters[0] && (
+                              <Link
+                                href={`/story/${id}/branch/${branch.id}/chapter/${branchChapters[0].chapter_number}`}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-bold transition-colors"
+                              >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                Read
+                              </Link>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )
@@ -241,9 +287,9 @@ export default async function StoryPage({ params }: PageProps) {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: 'Total reads', value: formatReadCount(story.total_reads), icon: Eye },
-                  { label: 'Branches', value: branches.length, icon: GitBranch },
+                  { label: 'Timelines', value: branches.length, icon: GitBranch },
                   { label: 'Chapters', value: canonChapters.length, icon: BookOpen },
-                  { label: 'Forks', value: story.total_forks, icon: GitBranch },
+                  { label: 'Alternatives', value: story.total_forks, icon: GitBranch },
                 ].map(({ label, value, icon: Icon }) => (
                   <div key={label} className="bg-paper-100 rounded-xl p-3 text-center border border-black/5">
                     <Icon className="w-4 h-4 text-amber-500 mx-auto mb-1" />
@@ -275,24 +321,26 @@ export default async function StoryPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Fork CTA */}
-            <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <GitBranch className="w-4 h-4 text-violet-500" />
-                <h3 className="text-sm font-bold text-violet-900">Fork this story</h3>
+            {/* Alternative CTA */}
+            {story.allow_alternatives && (
+              <div className="bg-violet-50 rounded-2xl p-5 border border-violet-100 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <GitBranch className="w-4 h-4 text-violet-500" />
+                  <h3 className="text-sm font-bold text-violet-900">Write an Alternative</h3>
+                </div>
+                <p className="text-violet-700/80 text-xs leading-relaxed mb-4 font-medium">
+                  Don't like where the story is going? Pick any chapter and write your own version of events.
+                </p>
+                <Link
+                  href={`/story/${id}/tree`}
+                  className="btn-secondary w-full justify-center text-sm shadow-sm bg-white"
+                  id="fork-story-sidebar-btn"
+                >
+                  <GitBranch className="w-4 h-4" />
+                  Choose a starting point
+                </Link>
               </div>
-              <p className="text-violet-700/80 text-xs leading-relaxed mb-4 font-medium">
-                Don't like where the story is going? Pick any chapter and write your own version.
-              </p>
-              <Link
-                href={`/story/${id}/tree`}
-                className="btn-fork w-full justify-center text-sm shadow-sm bg-white"
-                id="fork-story-sidebar-btn"
-              >
-                <GitBranch className="w-4 h-4" />
-                Choose fork point
-              </Link>
-            </div>
+            )}
           </div>
         </div>
       </div>

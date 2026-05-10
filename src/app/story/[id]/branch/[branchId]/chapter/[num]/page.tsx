@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, GitBranch, Clock, Eye, User } from 'lucide-react'
+import { ArrowLeft, ArrowRight, GitBranch, Clock, Eye, User, Split } from 'lucide-react'
 import { estimateReadTime, formatDate, formatReadCount } from '@/lib/utils'
 import type { Metadata } from 'next'
 
@@ -52,7 +52,29 @@ async function getChapterData(storyId: string, branchId: string, num: number) {
       .eq('branch_id', branchId)
       .order('chapter_number', { ascending: true })
 
-    return { chapter, story, prevChapter, nextChapter, branchChapters: branchChapters || [] }
+    // Get alternative paths that branch off from this chapter
+    const { data: alternativePaths } = await supabase
+      .from('branches')
+      .select('*, author:profiles(*)')
+      .eq('fork_from_chapter_id', chapter.id)
+
+    // Get canon branch ID for suggestions
+    const { data: canonBranch } = await supabase
+      .from('branches')
+      .select('id')
+      .eq('story_id', storyId)
+      .eq('is_canon', true)
+      .single()
+
+    return { 
+      chapter, 
+      story, 
+      prevChapter, 
+      nextChapter, 
+      branchChapters: branchChapters || [],
+      alternativePaths: alternativePaths || [],
+      canonBranchId: canonBranch?.id
+    }
   } catch {
     return null
   }
@@ -74,9 +96,13 @@ export default async function ChapterPage({ params }: PageProps) {
   const data = await getChapterData(id, branchId, chapterNum)
   if (!data) notFound()
 
-  const { chapter, story, prevChapter, nextChapter, branchChapters } = data
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  const { chapter, story, prevChapter, nextChapter, branchChapters, alternativePaths, canonBranchId } = data
   const branch = chapter.branch as any
   const author = chapter.author as any
+  const isBranchAuthor = session?.user?.id === author.id
 
   const paragraphs = chapter.content
     .split('\n\n')
@@ -108,12 +134,24 @@ export default async function ChapterPage({ params }: PageProps) {
 
             {/* Chapter header */}
             <div className="mb-10">
-              {!branch?.is_canon && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold mb-4">
-                  <GitBranch className="w-3 h-3" />
-                  Fork: {branch?.name}
-                </div>
-              )}
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                {!branch?.is_canon && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold">
+                    <Split className="w-3 h-3" />
+                    Path: {branch?.name}
+                  </div>
+                )}
+                
+                {/* Suggest to Canon Button */}
+                {!branch?.is_canon && isBranchAuthor && canonBranchId && (
+                  <Link
+                    href={`/story/${id}/branch/${branchId}/suggest`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold transition-colors ml-auto shadow-sm"
+                  >
+                    Suggest to Canon
+                  </Link>
+                )}
+              </div>
               <div className="text-ink-500 text-sm mb-2 font-mono font-bold uppercase tracking-wider">
                 Chapter {chapterNum}
               </div>
@@ -171,61 +209,107 @@ export default async function ChapterPage({ params }: PageProps) {
               ))}
             </div>
 
-            {/* Fork CTA */}
-            <div className="bg-violet-50 rounded-2xl p-6 border border-violet-100 mb-8 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <GitBranch className="w-4 h-4 text-violet-500" />
-                <h3 className="text-violet-900 font-bold">Fork from this chapter</h3>
+            {/* Crossroads UI */}
+            <div className="mt-16 pt-10 border-t border-black/10">
+              <h2 className="font-story text-3xl font-bold text-ink-900 text-center mb-2">
+                What happens next?
+              </h2>
+              <p className="text-center text-ink-500 mb-8 font-medium">Choose a path to continue the story, or write your own.</p>
+              
+              <div className="flex flex-col gap-4">
+                {/* 1. The Next Chapter in Current Timeline */}
+                {nextChapter && (
+                  <Link
+                    href={`/story/${id}/branch/${branchId}/chapter/${nextChapter.chapter_number}`}
+                    className="flex items-center justify-between bg-white px-6 py-5 rounded-2xl border-2 border-amber-500/20 hover:border-amber-500 hover:shadow-md transition-all group"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">
+                        <ArrowRight className="w-4 h-4" />
+                        Current Timeline
+                      </div>
+                      <div className="text-xl font-bold text-ink-900 group-hover:text-amber-700 transition-colors">
+                        Chapter {nextChapter.chapter_number}: {nextChapter.title}
+                      </div>
+                    </div>
+                    <div className="bg-amber-50 text-amber-600 p-3 rounded-full group-hover:bg-amber-100 transition-colors">
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  </Link>
+                )}
+
+                {/* 2. Alternative Paths */}
+                {alternativePaths.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-sm font-bold text-ink-400 uppercase tracking-wider mb-4 px-2">
+                      Alternative Paths
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {alternativePaths.map((altPath: any) => (
+                        <Link
+                          key={altPath.id}
+                          href={`/story/${id}/branch/${altPath.id}/chapter/${chapterNum + 1}`}
+                          className="bg-white p-5 rounded-2xl border border-black/5 hover:border-violet-300 hover:shadow-md transition-all group flex flex-col"
+                        >
+                          <div className="flex items-center gap-2 text-violet-600 text-xs font-bold uppercase tracking-wider mb-2">
+                            <Split className="w-3.5 h-3.5" />
+                            Alternative Path
+                          </div>
+                          <div className="text-lg font-bold text-ink-900 group-hover:text-violet-700 transition-colors mb-2">
+                            {altPath.name}
+                          </div>
+                          {altPath.description && (
+                            <p className="text-sm text-ink-600 mb-4 line-clamp-2 flex-grow">{altPath.description}</p>
+                          )}
+                          <div className="flex items-center justify-between text-xs text-ink-500 font-medium mt-auto">
+                            <span>by @{altPath.author?.username}</span>
+                            <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {formatReadCount(altPath.total_reads)}</span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. End of branch placeholder (if no next chapter) */}
+                {!nextChapter && alternativePaths.length === 0 && (
+                  <div className="bg-paper-100 p-8 rounded-2xl border-2 border-dashed border-black/10 text-center flex flex-col items-center justify-center mb-4">
+                    <div className="text-ink-400 mb-2">
+                      <Split className="w-8 h-8 mx-auto opacity-50" />
+                    </div>
+                    <h3 className="text-lg font-bold text-ink-900 mb-1">End of the line</h3>
+                    <p className="text-ink-500 text-sm">This timeline ends here... for now.</p>
+                  </div>
+                )}
+
+                {/* 4. Write Alternative Action */}
+                {story.allow_alternatives && (
+                  <div className="mt-6 flex justify-center">
+                    <Link
+                      href={`/write?fork=true&storyId=${id}&parentChapterId=${chapter.id}&branchId=${branchId}&chapterNum=${chapterNum}`}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 rounded-xl font-bold transition-colors shadow-sm"
+                      id="write-alternative-btn"
+                    >
+                      <Split className="w-4 h-4" />
+                      Write an Alternative Path
+                    </Link>
+                  </div>
+                )}
               </div>
-              <p className="text-violet-700/80 text-sm mb-4 font-medium">
-                You disagree with what happens next? Fork the story from here and write your own version.
-              </p>
-              <Link
-                href={`/write?fork=true&storyId=${id}&parentChapterId=${chapter.id}&branchId=${branchId}&chapterNum=${chapterNum}`}
-                className="btn-fork shadow-sm bg-white"
-                id="fork-from-chapter-btn"
-              >
-                <GitBranch className="w-4 h-4" />
-                Fork from Chapter {chapterNum}
-              </Link>
             </div>
 
-            {/* Chapter navigation */}
-            <div className="flex items-center justify-between gap-4">
-              {prevChapter ? (
+            {/* Previous chapter nav (bottom) */}
+            {prevChapter && (
+              <div className="mt-12 pt-6 border-t border-black/5 flex justify-center">
                 <Link
                   href={`/story/${id}/branch/${branchId}/chapter/${prevChapter.chapter_number}`}
-                  className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-black/5 text-ink-900 hover:border-black/15 transition-all group flex-1 shadow-sm"
-                  id="prev-chapter-btn"
+                  className="flex items-center gap-2 text-ink-500 hover:text-ink-900 text-sm font-bold transition-colors"
                 >
-                  <ArrowLeft className="w-4 h-4 text-ink-400 group-hover:-translate-x-1 transition-transform flex-shrink-0" />
-                  <div className="min-w-0">
-                    <div className="text-xs text-ink-500 font-bold uppercase tracking-wider">Previous</div>
-                    <div className="text-sm font-bold truncate">{prevChapter.title}</div>
-                  </div>
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Chapter {prevChapter.chapter_number}: {prevChapter.title}
                 </Link>
-              ) : (
-                <div className="flex-1" />
-              )}
-
-              {nextChapter ? (
-                <Link
-                  href={`/story/${id}/branch/${branchId}/chapter/${nextChapter.chapter_number}`}
-                  className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-black/5 text-ink-900 hover:border-black/15 transition-all group flex-1 justify-end text-right shadow-sm"
-                  id="next-chapter-btn"
-                >
-                  <div className="min-w-0">
-                    <div className="text-xs text-ink-500 font-bold uppercase tracking-wider">Next</div>
-                    <div className="text-sm font-bold truncate">{nextChapter.title}</div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-ink-400 group-hover:translate-x-1 transition-transform flex-shrink-0" />
-                </Link>
-              ) : (
-                <div className="bg-paper-100 px-4 py-3 rounded-xl border border-dashed border-black/10 text-ink-500 text-sm flex-1 text-center font-medium">
-                  End of this branch — fork to continue?
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}

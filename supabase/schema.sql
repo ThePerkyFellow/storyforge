@@ -43,6 +43,7 @@ create table public.stories (
   tags text[],
   cover_image_url text,
   is_published boolean default false,
+  allow_alternatives boolean default true,
   total_reads integer default 0,
   total_forks integer default 0,
   created_at timestamptz default now() not null,
