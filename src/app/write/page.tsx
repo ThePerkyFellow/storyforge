@@ -6,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import { useState, Suspense } from 'react'
-import { GitBranch, Save, ArrowLeft, Type, Bold, Italic, List } from 'lucide-react'
+import { Split, Save, ArrowLeft, Type, Bold, Italic, List } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
