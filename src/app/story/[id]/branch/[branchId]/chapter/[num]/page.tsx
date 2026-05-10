@@ -23,10 +23,10 @@ async function getChapterData(storyId: string, branchId: string, num: number) {
 
     if (error || !chapter) return null
 
-    // Get story title
+    // Get story title and settings
     const { data: story } = await supabase
       .from('stories')
-      .select('title, id')
+      .select('title, id, allow_alternatives')
       .eq('id', storyId)
       .single()
 
